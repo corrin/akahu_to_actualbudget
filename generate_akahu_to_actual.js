@@ -7,7 +7,6 @@ const api = require('@actual-app/api');
 // Load environment variables from .env file
 dotenv.config({ path: path.join(os.homedir(), '.env') });
 
-// Helper function for verbose logging
 function log(message) {
     const timestamp = new Date().toISOString();
     console.log(`[${timestamp}] ${message}`);
@@ -27,15 +26,25 @@ async function listAkahuAccounts() {
         log('Fetching Akahu accounts...');
         const response = await client.accounts.list(process.env.AKAHU_USER_TOKEN);
 
-        if (!response || !response.items) {
-            throw new Error('Invalid response received from Akahu API.');
+        // Uncomment the following lines to print raw Akahu API response for debugging
+        /*
+        log('Raw Akahu API Response:');
+        console.log(JSON.stringify(response, null, 2));
+        */
+
+        if (!Array.isArray(response)) {
+            throw new Error('Invalid response structure received from Akahu API.');
         }
 
-        log(`Retrieved ${response.items.length} Akahu account(s).`);
-        return response.items;
+        log(`Retrieved ${response.length} Akahu account(s).`);
+        return response;
     } catch (error) {
         console.error('Error fetching Akahu accounts:', error.message);
-        return [];
+        if (error.response) {
+            console.error('Response data:', JSON.stringify(error.response.data, null, 2));
+            console.error('Response status:', error.response.status);
+        }
+        return null; // Indicate failure
     }
 }
 
@@ -66,35 +75,48 @@ async function fetchActualAccounts() {
             throw new Error('Invalid accounts data received from Actual API.');
         }
 
+        // Assuming that all accounts share the same budget ID and budget name
+        const budgetName = "Household Budget"; // Replace with actual budget name if available from the API
+        const budgetId = process.env.ACTUAL_SYNC_ID;
+
+        accounts.forEach(account => {
+            account.budget_name = budgetName;
+            account.budget_id = budgetId;
+        });
+
         log(`Retrieved ${accounts.length} Actual account(s).`);
 
         await api.shutdown();
+
+        // Uncomment the following lines to print raw Actual API response for debugging
+        /*
+        log('Raw Actual API Response:');
+        console.log(JSON.stringify(accounts, null, 2));
+        */
+
         return accounts;
     } catch (error) {
         console.error('Error fetching Actual accounts:', error.message);
-        return [];
+        return null; // Indicate failure
     }
 }
 
 function mapAccounts(akahuAccounts, actualAccounts) {
     const mappedAccounts = [];
-    const akahuAccountNames = akahuAccounts.map(acc => acc.name);
-    const actualAccountNames = actualAccounts.map(acc => acc.name);
 
-    // Mapping Akahu accounts
-    for (const akahuAccount of akahuAccounts) {
+    akahuAccounts.forEach(akahuAccount => {
         const matchingActualAccount = actualAccounts.find(
             actualAccount => actualAccount.name === akahuAccount.name
         );
 
         if (matchingActualAccount) {
             mappedAccounts.push({
-                actual_budget_name: matchingActualAccount.budget_name || null,
+                actual_budget_name: matchingActualAccount.budget_name,
                 actual_account_name: matchingActualAccount.name,
                 account_type: matchingActualAccount.offbudget ? 'Tracking' : 'On Budget',
                 akahu_name: akahuAccount.name,
                 akahu_id: akahuAccount._id,
-                actual_budget_id: matchingActualAccount.budget_id || null,
+                actual_budget_id: matchingActualAccount.budget_id,
                 actual_account_id: matchingActualAccount.id,
                 note: null
             });
@@ -105,21 +127,24 @@ function mapAccounts(akahuAccounts, actualAccounts) {
                 note: 'No matching Actual account found.'
             });
         }
-    }
+    });
 
-    // Mapping Actual accounts without matching Akahu accounts
-    for (const actualAccount of actualAccounts) {
-        if (!akahuAccountNames.includes(actualAccount.name)) {
+    actualAccounts.forEach(actualAccount => {
+        const matchingAkahuAccount = akahuAccounts.find(
+            akahuAccount => akahuAccount.name === actualAccount.name
+        );
+
+        if (!matchingAkahuAccount) {
             mappedAccounts.push({
-                actual_budget_name: actualAccount.budget_name || null,
+                actual_budget_name: actualAccount.budget_name,
                 actual_account_name: actualAccount.name,
                 account_type: actualAccount.offbudget ? 'Tracking' : 'On Budget',
-                actual_budget_id: actualAccount.budget_id || null,
+                actual_budget_id: actualAccount.budget_id,
                 actual_account_id: actualAccount.id,
                 note: 'No matching Akahu account found.'
             });
         }
-    }
+    });
 
     return mappedAccounts;
 }
@@ -131,8 +156,9 @@ function mapAccounts(akahuAccounts, actualAccounts) {
         const akahuAccounts = await listAkahuAccounts();
         const actualAccounts = await fetchActualAccounts();
 
-        if (akahuAccounts.length === 0 && actualAccounts.length === 0) {
-            throw new Error('No accounts retrieved from either Akahu or Actual APIs.');
+        // Abort if fetching either Akahu or Actual accounts fails
+        if (!akahuAccounts || !actualAccounts) {
+            throw new Error('Failed to retrieve accounts from either Akahu or Actual APIs. Aborting.');
         }
 
         const mappedAccounts = mapAccounts(akahuAccounts, actualAccounts);
