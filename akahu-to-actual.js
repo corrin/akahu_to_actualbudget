@@ -5,6 +5,8 @@ const fs = require('fs').promises;
 const os = require('os');
 const api = require('@actual-app/api');
 
+let transactionCache = null; // Global variable to act as a singleton for transactions
+
 // dotenv.config({ path: path.join(process.env.HOME, '.env') });
 dotenv.config({ path: path.join(__dirname, '.env') });
 
@@ -17,7 +19,7 @@ function log(message) {
     const truncatedMessage = message.length > 2000
         ? message.substring(0, 2000) + '... (truncated)'
         : message;
-    process.stdout.write(`[${timestamp}] ${truncatedMessage}\n`);
+    console.log(`[${timestamp}] ${truncatedMessage}`);
 }
 
 const requiredEnvVars = [
@@ -73,31 +75,86 @@ async function fetchAkahuAccounts(client, userToken) {
     }
 }
 
-async function fetchAkahuTransactions(client, userToken, startDate, accountId) {
-    log(`Starting to fetch transactions for account ${accountId} from ${startDate}`);
+
+async function refreshAkahuTransactionCache(client, userToken, startDate) {
+    log(`Refreshing transaction cache by fetching all transactions from Akahu API starting from ${startDate}`);
 
     try {
-        const response = await client.transactions.list(userToken, {
-            start: startDate,
-            end: new Date().toISOString(),
-            account: accountId,
-        });
+        let allTransactions = [];
+        let nextCursor = undefined;
 
-        if (typeof response !== 'object' || !response.items || !Array.isArray(response.items)) {
-            log(`Error: Unexpected response structure for account ${accountId}`);
-            throw new Error('Unexpected response format from Akahu API');
-        }
+        do {
+            // Fetch a page of transactions from the API
+            const response = await client.transactions.list(userToken, {
+                start: startDate,
+                end: new Date().toISOString(),
+                cursor: nextCursor,
+            });
 
-        const transactions = response.items;
-        log(`Fetched ${transactions.length} transactions for account ${accountId}`);
+            if (typeof response !== 'object' || !response.items || !Array.isArray(response.items)) {
+                log(`Error: Unexpected response structure when fetching transactions`);
+                throw new Error('Unexpected response format from Akahu API');
+            }
 
-        // Log a sample raw transaction
-        if (transactions.length > 0) {
-            log(`Sample raw Akahu transaction for account ${accountId}:`);
-            log(JSON.stringify(transactions[0], null, 2));
-        }
+            allTransactions = allTransactions.concat(response.items);
+            nextCursor = response.cursor ? response.cursor.next : null;
 
-        return transactions;
+            log(`Fetched ${response.items.length} transactions, total so far: ${allTransactions.length}`);
+        } while (nextCursor !== null);
+
+        // Cache the transactions
+        transactionCache = allTransactions;
+        log(`Fetched ${transactionCache.length} transactions and cached them.`);
+
+    } catch (error) {
+        log(`Error refreshing Akahu transaction cache: ${error.message}`);
+        throw error;
+    }
+}
+
+async function fetchAkahuTransactionsCache(client, userToken, startDate, accountId) {
+    log(`Checking transaction cache for account ${accountId}...`);
+
+    if (!transactionCache) {
+        log(`Transaction cache not set. Refreshing transaction cache.`);
+        await refreshAkahuTransactionCache(client, userToken, startDate);
+    } else {
+        log(`Using cached transactions.`);
+    }
+
+    // Filter the cached transactions to return only those for the specific accountId
+    const filteredTransactions = transactionCache.filter(transaction => transaction._account === accountId);
+    log(`Found ${filteredTransactions.length} transactions for account ${accountId}`);
+    return filteredTransactions;
+}
+
+async function fetchAkahuTransactions(client, userToken, accountId) {
+    log(`Fetching transactions directly from Akahu API for account ${accountId} without using cache`);
+
+    try {
+        let allTransactions = [];
+        let nextCursor = undefined;
+
+        do {
+            // Fetch a page of transactions for the specified account from the API
+            const response = await client.accounts.transactions(userToken, accountId, {
+                cursor: nextCursor,
+            });
+
+            if (typeof response !== 'object' || !response.items || !Array.isArray(response.items)) {
+                log(`Error: Unexpected response structure when fetching transactions`);
+                throw new Error('Unexpected response format from Akahu API');
+            }
+
+            allTransactions = allTransactions.concat(response.items);
+            nextCursor = response.cursor ? response.cursor.next : null;
+
+            log(`Fetched ${response.items.length} transactions, total so far: ${allTransactions.length}`);
+        } while (nextCursor !== null);
+
+        log(`Fetched ${allTransactions.length} transactions in total for account ${accountId}.`);
+        return allTransactions;
+
     } catch (error) {
         log(`Error fetching Akahu transactions for account ${accountId}: ${error.message}`);
         throw error;
@@ -260,6 +317,81 @@ function generateSummary(accounts, transactions) {
     }));
 }
 
+async function loadAndValidateMapping(mapping, actualAccounts) {
+    log('Validating mapping accounts...');
+
+    // Filter the mappings to only keep valid accounts
+    const validMapping = mapping.filter(account => {
+        if (!account.akahu_id || !account.actual_account_id || account.actual_budget_id === 'SKIP') {
+            log(`Skipping invalid or skipped mapping for Akahu account: ${account.akahu_name} (Akahu ID: ${account.akahu_id})`);
+            return false;
+        }
+
+        const correspondingActualAccount = actualAccounts.find(a => a.id === account.actual_account_id);
+        if (!correspondingActualAccount) {
+            log(`No matching Actual account found for ${account.akahu_name} (Actual Account ID: ${account.actual_account_id})`);
+            return false;
+        }
+
+        return true;
+    });
+
+    log(`Validated ${validMapping.length} valid accounts from mapping file.`);
+
+    // Optional step: Write the valid mappings back to a file for reference
+    const validatedMappingFileName = 'validated_akahu_to_actual_mapping.json';
+    try {
+        await fs.writeFile(validatedMappingFileName, JSON.stringify(validMapping, null, 2));
+        log(`Valid mappings written to file: ${validatedMappingFileName}`);
+    } catch (error) {
+        log(`Error writing validated mapping to file (${validatedMappingFileName}): ${error.message}`);
+    }
+
+    return validMapping;
+}
+
+
+async function syncOnBudgetAccount(akahuClient, akahuId, actualId, syncFromDate, syncToDate = new Date().toISOString()) {
+    log(`Starting sync for on-budget Akahu account (${akahuId}) to Actual account (${actualId}) from ${syncFromDate} to ${syncToDate}`);
+
+    try {
+        // Fetch transactions from Akahu
+        const akahuTransactions = await fetchAkahuTransactions(akahuClient, process.env.AKAHU_USER_TOKEN, syncFromDate, akahuId);
+        log(`Fetched ${akahuTransactions.length} transactions from Akahu for on-budget account ${akahuId}`);
+
+        if (akahuTransactions.length === 0) {
+            log(`No new transactions found for Akahu account (${akahuId}).`);
+            return;
+        }
+
+        // Map transactions to Actual format
+        const mappedTransactions = akahuTransactions.map(t => ({
+            date: isoToShortDate(t.date),
+            account: actualId,
+            amount: Math.round(t.amount * -100), // Convert to cents and invert sign
+            payee_name: t.description,
+            notes: `Akahu transaction from account (${akahuId}): ${t.description}`,
+            imported_id: t._id,
+        }));
+
+        // Import transactions into Actual
+        const importResult = await api.importTransactions(actualId, mappedTransactions);
+        log(`Imported ${mappedTransactions.length} transactions for Akahu on-budget account (${akahuId}) to Actual account (${actualId})`);
+        log(`Import result: ${JSON.stringify(importResult, null, 2)}`);
+
+        // Update sync timestamp for this account
+        await updateSyncTimestamp(akahuId, new Date().toISOString());
+
+    } catch (error) {
+        log(`Error syncing Akahu on-budget account (${akahuId}) to Actual account (${actualId}): ${error.message}`);
+        if (error.stack) {
+            log(`Error stack: ${error.stack}`);
+        }
+    }
+}
+
+
+
 async function importTransactions() {
     const overallStartTime = Date.now();
     const transactionSummary = {};
@@ -389,6 +521,29 @@ importTransactions().catch(error => {
     log(`Unhandled error occurred: ${error.message}`);
     process.exit(1);
 });
+
+async function testSyncOnBudgetAccount() {
+    // Set up the Akahu client with your credentials
+    const akahuClient = new AkahuClient({
+        appToken: process.env.AKAHU_APP_TOKEN,
+    });
+
+    // Test account details for Kiwibank 02
+    const akahuId = 'acc_ckvn0uqpa000009ju3101dbnb';
+    const actualId = '84777895-ca77-407e-9f7b-d6e9a3d21710';
+    const syncFromDate = '2024-06-01T00:00:00.000Z';
+
+    try {
+        // Call the sync function for Kiwibank 02
+        await syncOnBudgetAccount(akahuClient, akahuId, actualId, syncFromDate);
+        console.log('Test sync completed successfully for Kiwibank 02.');
+    } catch (error) {
+        console.error('Test sync failed:', error.message);
+    }
+}
+
+// // Run the test function
+// testSyncOnBudgetAccount();
 
 process.on('unhandledRejection', (reason, promise) => {
     log('Unhandled Rejection at:', promise, 'reason:', reason);
