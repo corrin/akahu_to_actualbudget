@@ -1,0 +1,457 @@
+[2024-08-09T01:02:42.807Z] Starting account mapping process...
+[2024-08-09T01:02:42.808Z] Initializing Akahu Client...
+[2024-08-09T01:02:42.809Z] Fetching Akahu accounts...
+[2024-08-09T01:02:43.790Z] Retrieved 21 Akahu account(s).
+[2024-08-09T01:02:43.790Z] Initializing Actual API...
+[2024-08-09T01:02:44.825Z] Downloading Actual budget...
+Loaded spreadsheet from cache (25984 items)
+Syncing since 2024-08-08T22:32:06.457Z-0013-8fc53d92ee2a5fca 0 (attempt: 0)
+Got messages from server 0
+[2024-08-09T01:02:45.707Z] Fetching Actual accounts...
+[2024-08-09T01:02:45.711Z] Retrieved 42 Actual account(s).
+Syncing since 2024-08-08T22:32:06.457Z-0013-8fc53d92ee2a5fca 0 (attempt: 0)
+Got messages from server 0
+[2024-08-09T01:02:45.834Z] Account mapping completed. Outputting JSON:
+[
+  {
+    "akahu_name": "Income tax",
+    "akahu_id": "acc_clp77gcyq000908l45x4297kz",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "High Growth Fund",
+    "akahu_id": "acc_clp77f69i000808kxahgt70ph",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "Airpoints Platinum Mastercard",
+    "akahu_id": "acc_clp77cei7000308l4ed6be3i9",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "Personal mortgage",
+    "akahu_id": "acc_clp77cei6000208l412nh163e",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "Budgeted Spending",
+    "akahu_id": "acc_clp77ceh3000108l4602rhlih",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "MSM loan",
+    "akahu_id": "acc_clp77cegm000008l46y6g9r0s",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "Corrin's Kiwisaver",
+    "akahu_id": "acc_ckvn0z75m000i09juhof5b2g3",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "Budgeted spending",
+    "akahu_id": "acc_ckvn0uqpa000009ju3101dbnb",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "Savings Emergency",
+    "akahu_id": "acc_clp8ykvsf000008if67dmdfy6",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "Lakeland Consulting",
+    "akahu_id": "acc_clpa30k8c000008l97fkx4g41",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "Business Edge",
+    "akahu_id": "acc_clpa311fe000208l96rljhaij",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "Savings",
+    "akahu_id": "acc_clpa32mtc000408l9h0fa3tyc",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "DAY TO DAY",
+    "akahu_id": "acc_clpa3333g000608l9amihcom7",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "BNZ Advantage Visa Business",
+    "akahu_id": "acc_clpa38583000008le8flp8l60",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "Corrin Lakeland NZD Balance",
+    "akahu_id": "acc_clpa9apd9000008l90nfacrlf",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "Corrin Lakeland USD Balance",
+    "akahu_id": "acc_clpa9ape8000108l9df0yea07",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "Corrin Lakeland JPY Balance",
+    "akahu_id": "acc_clpa9apeq000208l9840kccp2",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "Corrin Lakeland EUR Balance",
+    "akahu_id": "acc_clpa9apes000308l9fva64ju7",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "Staff Welfare",
+    "akahu_id": "acc_clpa9brzx000408jv12xi20zs",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "Esme",
+    "akahu_id": "acc_clxjrgka3000008l7erbga08d",
+    "note": "No matching Actual account found."
+  },
+  {
+    "akahu_name": "DAY TO DAY",
+    "akahu_id": "acc_clzl1em6y000008kxf0z8cffq",
+    "note": "No matching Actual account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "BNZ Savings",
+    "account_type": "On Budget",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "a33e17ff-e38b-459c-8512-89241aea5b84",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "To Repay: Mark",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "5f607849-a0d8-4257-a59e-1d32611deeca",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Kiwibank 02",
+    "account_type": "On Budget",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "84777895-ca77-407e-9f7b-d6e9a3d21710",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "To Repay: Berenice",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "e5c16346-df40-4d1a-8237-a954151634d3",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Kiwibank CC",
+    "account_type": "On Budget",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "8bce60b9-a7d3-4c85-90a6-ceb31c28a9b7",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Massey: Set Aside To Replay S+R",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "92b55eb8-41c3-4f5e-b557-f4228ea66d0c",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Offset Home Loan (Original)",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "56251aec-7148-4ba1-b38d-c9cc08b11a29",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Wise (Personal)",
+    "account_type": "On Budget",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "4305b423-87cf-4008-adc9-4946f05b7c2e",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Andrea: Student Loan",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "2abf4538-7d9c-4c80-a40a-f9e540c7505b",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Westpac CC",
+    "account_type": "On Budget",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "5b90ad29-c76d-45bc-8973-461d29037cf6",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Massey: Fitout",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "a4d85a0c-3e57-48a6-becb-6dc214aa45ff",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Westpac",
+    "account_type": "On Budget",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "461dfec1-21ef-4e2c-942c-7a2829ef0132",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Massey: Owe S+R",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "e61233b8-a337-4b9c-849b-ae1ced8f035e",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Massey: Equipment",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "47e45da3-112a-417d-83e4-377f2d21f0ce",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Nathan: House Shares",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "13d36370-4084-43d1-897c-45074148b63d",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Ethereum",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "faf68e50-ab65-461f-a21f-922613ca19f2",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Harmoney",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "c05b0533-b778-40d5-89ae-74c0b848153b",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Andrea Inheritence",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "d421a4ed-86d1-48ec-863c-6b884d35ce24",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Nathan InvestNow",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "a007b68d-40f9-44de-9e8b-a5eb629b2afa",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Massey: Assets",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "a6e46447-ef7c-4194-8499-bcec4c335ea8",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "MSM: Assets",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "1f68d5a0-e265-4461-ac93-339776fbf2a1",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "MSM: Liabilities (Original)",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "4a2d4baf-ef62-43f2-823f-42408973e56e",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Massey Smiles Liabilities",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "b51fba5d-8fd6-4065-b19a-656fdcaf48e8",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Corrin Income Tax debt",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "9641f4f0-f67e-4550-b147-3a8c073f0114",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Lakeland Consulting IRD loan",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "436f0b29-e426-4f9a-a353-53173d491639",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "To Repay: Andrea",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "e7837c6e-0458-4342-90f9-03c9346a1158",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Fly Buys Points",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "95464867-1d33-46ad-b976-f3138cdb23a1",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Mitre 10 Gift Cards",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "080c1d45-b18f-4bc9-ac08-177c071ab129",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Massey: Balance Sheet",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "79f85de0-c075-4315-a216-51e560c33e28",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Massey: Valuation",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "48a2eda8-b960-4d77-8502-f62761ec364d",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "MSM: Valuation",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "37385540-4a8f-46b6-9dee-4d055f46812b",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "To Repay: Corrin",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "8bc8cfbe-9267-4007-bbec-d196498d0b0d",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Loan to purchase MSM",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "19dad91e-f486-4bf7-a1b7-bb1a8f779a6a",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "MSM: Balance Sheet",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "845aad16-3f30-4852-ba2b-df7748c1992e",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Andrea: Kiwisaver",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "d2e3e84a-f656-47c4-8b42-4f4766d7f8ef",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "To Repay: Other",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "8fb78d05-b966-4bf3-ad11-4f8296a9f6f6",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Savings/Emergency",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "81c7b6ed-5bbc-48f9-8049-0b3652830c8f",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Corrin: Kiwisaver",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "b00f6d0a-d10d-4dc7-81d2-b8b3aad281de",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Simplicity Investment",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "456c3465-ccce-4aa7-b8de-7f64d6b96079",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Offset Home Loan",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "ca709c99-c95d-4e20-909e-14c41e78db33",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "House Value",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "5f90786e-30f3-4867-9530-bf07c01f01d4",
+    "note": "No matching Akahu account found."
+  },
+  {
+    "actual_budget_name": "Household Budget",
+    "actual_account_name": "Esme's Bank account",
+    "account_type": "Tracking",
+    "actual_budget_id": "fd2238de-6396-41ed-87ba-41b578029fcb",
+    "actual_account_id": "b66b4a48-950d-40fd-bd97-8404bb935356",
+    "note": "No matching Akahu account found."
+  }
+]

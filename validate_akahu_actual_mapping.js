@@ -28,6 +28,7 @@ async function fetchAkahuAccounts() {
             appToken: process.env.AKAHU_APP_TOKEN,
         });
         const accounts = await client.accounts.list(process.env.AKAHU_USER_TOKEN);
+        log(`Fetched ${accounts.length} Akahu accounts successfully.`);
         return new Map(accounts.map(account => [account._id, account]));
     } catch (error) {
         throw new Error(`Error fetching Akahu accounts: ${error.message}`);
@@ -44,6 +45,7 @@ async function fetchActualAccounts() {
         });
         await api.downloadBudget(process.env.ACTUAL_SYNC_ID);
         const accounts = await api.getAccounts();
+        log(`Fetched ${accounts.length} Actual accounts successfully.`);
         await api.shutdown();
         return new Map(accounts.map(account => [account.id, account]));
     } catch (error) {
@@ -83,33 +85,24 @@ async function main() {
         log('Mapping file read successfully.');
 
         const akahuAccounts = await fetchAkahuAccounts();
-        log('Akahu accounts fetched successfully.');
-
         const actualAccounts = await fetchActualAccounts();
-        log('Actual accounts fetched successfully.');
 
-        const validationErrors = validateMapping(mapping, akahuAccounts, actualAccounts);
+        const validationResults = validateMapping(mapping, akahuAccounts, actualAccounts);
 
-        if (validationErrors.length === 0) {
+        const errors = validationResults.filter(result => !result.startsWith('Warning:'));
+        const warnings = validationResults.filter(result => result.startsWith('Warning:'));
+
+        if (errors.length === 0) {
             log('Validation completed. No errors found.');
         } else {
             log('Validation completed. Errors found:');
-            validationErrors.forEach(error => log(error));
+            errors.forEach(error => log(error));
         }
 
-        // Check for Akahu accounts not in the mapping
-        akahuAccounts.forEach((account, id) => {
-            if (!mapping.some(entry => entry.akahu_id === id)) {
-                log(`Warning: Akahu account not in mapping: ${account.name} (ID: ${id})`);
-            }
-        });
-
-        // Check for Actual accounts not in the mapping
-        actualAccounts.forEach((account, id) => {
-            if (!mapping.some(entry => entry.actual_account_id === id)) {
-                log(`Warning: Actual account not in mapping: ${account.name} (ID: ${id})`);
-            }
-        });
+        if (warnings.length > 0) {
+            log('Warnings:');
+            warnings.forEach(warning => log(warning));
+        }
 
     } catch (error) {
         console.error('Error:', error.message);

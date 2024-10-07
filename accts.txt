@@ -1,0 +1,224 @@
+Fetching Actual Budget accounts...
+Server URL: https://certain-myna.pikapod.net
+Sync ID: fd2238de-6396-41ed-87ba-41b578029fcb
+Initializing API...
+API initialized successfully
+Attempting to download budget...
+Loaded spreadsheet from cache (25984 items)
+Syncing since 1970-01-01T00:00:00.000Z-0000-8fc53d92ee2a5fca 0 (attempt: 0)
+Got messages from server 0
+Budget downloaded successfully
+Fetching accounts...
+Retrieved 42 accounts:
+- Name: BNZ Savings
+  ID: a33e17ff-e38b-459c-8512-89241aea5b84
+  Type: On Budget
+  Account Number: N/A
+---
+- Name: To Repay: Mark
+  ID: 5f607849-a0d8-4257-a59e-1d32611deeca
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Kiwibank 02
+  ID: 84777895-ca77-407e-9f7b-d6e9a3d21710
+  Type: On Budget
+  Account Number: N/A
+---
+- Name: To Repay: Berenice
+  ID: e5c16346-df40-4d1a-8237-a954151634d3
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Kiwibank CC
+  ID: 8bce60b9-a7d3-4c85-90a6-ceb31c28a9b7
+  Type: On Budget
+  Account Number: N/A
+---
+- Name: Massey: Set Aside To Replay S+R
+  ID: 92b55eb8-41c3-4f5e-b557-f4228ea66d0c
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Offset Home Loan (Original)
+  ID: 56251aec-7148-4ba1-b38d-c9cc08b11a29
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Wise (Personal)
+  ID: 4305b423-87cf-4008-adc9-4946f05b7c2e
+  Type: On Budget
+  Account Number: N/A
+---
+- Name: Andrea: Student Loan
+  ID: 2abf4538-7d9c-4c80-a40a-f9e540c7505b
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Westpac CC
+  ID: 5b90ad29-c76d-45bc-8973-461d29037cf6
+  Type: On Budget
+  Account Number: N/A
+---
+- Name: Massey: Fitout
+  ID: a4d85a0c-3e57-48a6-becb-6dc214aa45ff
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Westpac
+  ID: 461dfec1-21ef-4e2c-942c-7a2829ef0132
+  Type: On Budget
+  Account Number: N/A
+---
+- Name: Massey: Owe S+R
+  ID: e61233b8-a337-4b9c-849b-ae1ced8f035e
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Massey: Equipment
+  ID: 47e45da3-112a-417d-83e4-377f2d21f0ce
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Nathan: House Shares
+  ID: 13d36370-4084-43d1-897c-45074148b63d
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Ethereum
+  ID: faf68e50-ab65-461f-a21f-922613ca19f2
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Harmoney
+  ID: c05b0533-b778-40d5-89ae-74c0b848153b
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Andrea Inheritence
+  ID: d421a4ed-86d1-48ec-863c-6b884d35ce24
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Nathan InvestNow
+  ID: a007b68d-40f9-44de-9e8b-a5eb629b2afa
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Massey: Assets
+  ID: a6e46447-ef7c-4194-8499-bcec4c335ea8
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: MSM: Assets
+  ID: 1f68d5a0-e265-4461-ac93-339776fbf2a1
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: MSM: Liabilities (Original)
+  ID: 4a2d4baf-ef62-43f2-823f-42408973e56e
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Massey Smiles Liabilities
+  ID: b51fba5d-8fd6-4065-b19a-656fdcaf48e8
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Corrin Income Tax debt
+  ID: 9641f4f0-f67e-4550-b147-3a8c073f0114
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Lakeland Consulting IRD loan
+  ID: 436f0b29-e426-4f9a-a353-53173d491639
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: To Repay: Andrea
+  ID: e7837c6e-0458-4342-90f9-03c9346a1158
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Fly Buys Points
+  ID: 95464867-1d33-46ad-b976-f3138cdb23a1
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Mitre 10 Gift Cards
+  ID: 080c1d45-b18f-4bc9-ac08-177c071ab129
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Massey: Balance Sheet
+  ID: 79f85de0-c075-4315-a216-51e560c33e28
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Massey: Valuation
+  ID: 48a2eda8-b960-4d77-8502-f62761ec364d
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: MSM: Valuation
+  ID: 37385540-4a8f-46b6-9dee-4d055f46812b
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: To Repay: Corrin
+  ID: 8bc8cfbe-9267-4007-bbec-d196498d0b0d
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Loan to purchase MSM
+  ID: 19dad91e-f486-4bf7-a1b7-bb1a8f779a6a
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: MSM: Balance Sheet
+  ID: 845aad16-3f30-4852-ba2b-df7748c1992e
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Andrea: Kiwisaver
+  ID: d2e3e84a-f656-47c4-8b42-4f4766d7f8ef
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: To Repay: Other
+  ID: 8fb78d05-b966-4bf3-ad11-4f8296a9f6f6
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Savings/Emergency
+  ID: 81c7b6ed-5bbc-48f9-8049-0b3652830c8f
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Corrin: Kiwisaver
+  ID: b00f6d0a-d10d-4dc7-81d2-b8b3aad281de
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Simplicity Investment
+  ID: 456c3465-ccce-4aa7-b8de-7f64d6b96079
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Offset Home Loan
+  ID: ca709c99-c95d-4e20-909e-14c41e78db33
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: House Value
+  ID: 5f90786e-30f3-4867-9530-bf07c01f01d4
+  Type: Off Budget
+  Account Number: N/A
+---
+- Name: Esme's Bank account
+  ID: b66b4a48-950d-40fd-bd97-8404bb935356
+  Type: Off Budget
+  Account Number: N/A
+---
+Syncing since 1970-01-01T00:00:00.000Z-0000-8fc53d92ee2a5fca 0 (attempt: 0)
+Got messages from server 0

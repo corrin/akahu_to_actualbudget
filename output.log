@@ -1,0 +1,31 @@
+[2024-08-08T22:10:59.801Z] akahu_sync_timestamps.json not found, creating new file
+[2024-08-08T22:10:59.802Z] Starting to fetch Akahu accounts
+[2024-08-08T22:11:00.483Z] Error fetching Akahu accounts:
+[2024-08-08T22:11:00.483Z] Status: 403
+[2024-08-08T22:11:00.483Z] Headers: {"content-type":"application/json","content-length":"23","connection":"close","date":"Thu, 08 Aug 2024 22:11:00 GMT","apigw-requestid":"cNdSOgNFywMEQKQ=","x-cache":"Error from cloudfront","via":"1.1 fc1cc7c682d30bba517abb52ab524f90.cloudfront.net (CloudFront)","x-amz-cf-pop":"IAD66-C1","x-amz-cf-id":"4QxSbHbLTQday2hopvhBnHkv_dAkYNXlnjV6eztCcrpscLTW3GClTg=="}
+[2024-08-08T22:11:00.483Z] Data: {"message":"Forbidden"}
+[2024-08-08T22:11:00.483Z] Error stack: AxiosError: Request failed with status code 403
+    at settle (/home/lakeland/actual-budget-project/node_modules/axios/dist/node/axios.cjs:2015:12)
+    at IncomingMessage.handleStreamEnd (/home/lakeland/actual-budget-project/node_modules/axios/dist/node/axios.cjs:3131:11)
+    at IncomingMessage.emit (node:events:529:35)
+    at endReadableNT (node:internal/streams/readable:1400:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+    at Axios.request (/home/lakeland/actual-budget-project/node_modules/axios/dist/node/axios.cjs:4262:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async fetchAkahuAccounts (/home/lakeland/actual-budget-project/akahu-to-actual.js:52:26)
+    at async importTransactions (/home/lakeland/actual-budget-project/akahu-to-actual.js:146:31)
+[2024-08-08T22:11:00.483Z] An error occurred:
+[2024-08-08T22:11:00.483Z] Status: 403
+[2024-08-08T22:11:00.483Z] Headers: {"content-type":"application/json","content-length":"23","connection":"close","date":"Thu, 08 Aug 2024 22:11:00 GMT","apigw-requestid":"cNdSOgNFywMEQKQ=","x-cache":"Error from cloudfront","via":"1.1 fc1cc7c682d30bba517abb52ab524f90.cloudfront.net (CloudFront)","x-amz-cf-pop":"IAD66-C1","x-amz-cf-id":"4QxSbHbLTQday2hopvhBnHkv_dAkYNXlnjV6eztCcrpscLTW3GClTg=="}
+[2024-08-08T22:11:00.483Z] Data: {"message":"Forbidden"}
+[2024-08-08T22:11:00.483Z] Error stack: AxiosError: Request failed with status code 403
+    at settle (/home/lakeland/actual-budget-project/node_modules/axios/dist/node/axios.cjs:2015:12)
+    at IncomingMessage.handleStreamEnd (/home/lakeland/actual-budget-project/node_modules/axios/dist/node/axios.cjs:3131:11)
+    at IncomingMessage.emit (node:events:529:35)
+    at endReadableNT (node:internal/streams/readable:1400:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+    at Axios.request (/home/lakeland/actual-budget-project/node_modules/axios/dist/node/axios.cjs:4262:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async fetchAkahuAccounts (/home/lakeland/actual-budget-project/akahu-to-actual.js:52:26)
+    at async importTransactions (/home/lakeland/actual-budget-project/akahu-to-actual.js:146:31)
+[2024-08-08T22:11:00.483Z] Total execution time: 686ms
