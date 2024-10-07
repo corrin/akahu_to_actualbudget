@@ -2,6 +2,7 @@ const { AkahuClient } = require('akahu');
 const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs').promises;
+const os = require('os');
 const api = require('@actual-app/api');
 
 // dotenv.config({ path: path.join(process.env.HOME, '.env') });
@@ -144,8 +145,10 @@ async function updateSyncTimestamp(accountId, timestamp) {
 
 async function initializeActualAPI() {
     try {
+        const dataDir = path.join(os.tmpdir(), 'actual-data');
+        await fs.mkdir(dataDir, { recursive: true });
         await api.init({
-            dataDir: '/tmp/actual-data',
+            dataDir: dataDir,
             serverURL: process.env.ACTUAL_SERVER_URL,
             password: process.env.ACTUAL_PASSWORD,
             budgetId: process.env.ACTUAL_SYNC_ID,
