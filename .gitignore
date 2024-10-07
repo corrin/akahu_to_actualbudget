@@ -1,2 +1,4 @@
+node_modules/
 .env
 actual-budget-test.js
+*.log
