@@ -10,9 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@actual-app/api": "^6.9.0",
+    "@actual-app/api": "^6.10.0",
     "akahu": "^1.15.3",
-    "axios": "^1.7.3",
+    "axios": "^1.7.7",
     "dotenv": "^16.4.5"
   }
 }

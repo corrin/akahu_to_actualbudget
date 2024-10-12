@@ -7,6 +7,20 @@ const api = require('@actual-app/api');
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '.env') });
 
+function log(message) {
+    const timestamp = new Date().toISOString();
+    const truncatedMessage = message.length > 2000
+        ? message.substring(0, 2000) + '... (truncated)'
+        : message;
+    console.log(`[${timestamp}] ${truncatedMessage}`);
+}
+
+function logError(message, error) {
+    log(`${message}: ${error.message}`);
+    if (error.stack) {
+        log(`Error stack: ${error.stack}`);
+    }
+}
 // Function to initialize Actual API
 async function initializeActualAPI() {
     try {
@@ -18,13 +32,33 @@ async function initializeActualAPI() {
             password: process.env.ACTUAL_PASSWORD,
             budgetId: process.env.ACTUAL_SYNC_ID,
         });
-        console.log('Actual API initialized successfully');
+        log('Actual API initialized successfully');
+
+        // Attempt to sync the budget
+        log('Syncing budget...');
+        try {
+            await api.sync();
+            log('Budget synced successfully');
+        } catch (syncError) {
+            if (syncError.message.includes('Database is out of sync with migrations')) {
+                log('Database is out of sync. This might require manual intervention.');
+                log('Please ensure your local Actual app and API are up to date.');
+                log('If the problem persists, you might need to create a new budget on the server.');
+                throw syncError;
+            } else {
+                throw syncError;
+            }
+        }
+
+        // Load the budget after successful sync
+        await api.loadBudget(process.env.ACTUAL_SYNC_ID);
+        log('Budget loaded successfully');
+
     } catch (error) {
-        console.error(`Error during Actual API initialization: ${error.message}`);
+        logError('Error during Actual API initialization, sync, or budget loading', error);
         throw error;
     }
 }
-
 // Function to ensure budget is loaded
 async function ensureBudgetLoaded() {
     try {

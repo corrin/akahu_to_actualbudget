@@ -8,11 +8,12 @@ const actualAPI = require('@actual-app/api');
 
 dotenv.config({ path: path.join(__dirname, '.env') });
 
+// Verify all required environment variables are set
 const requiredEnvVars = [
     'ACTUAL_SERVER_URL',
     'ACTUAL_PASSWORD',
-    'ACTUAL_SYNC_ID',
     'ACTUAL_ENCRYPTION_KEY',
+    'ACTUAL_SYNC_ID',
     'AKAHU_APP_TOKEN',
     'AKAHU_USER_TOKEN',
     'OPENAI_API_KEY'
@@ -25,66 +26,66 @@ requiredEnvVars.forEach((varName) => {
   }
 });
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const MAPPING_FILE = 'akahu_to_actual_mapping.json';
 
 async function log(message) {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] ${message}`);
 }
 
+async function initializeActualAPI() {
+  try {
+    const dataDir = path.join(os.tmpdir(), 'actual-data');
+    await fs.mkdir(dataDir, { recursive: true });
+    actualApiInstance = await actualAPI.init({
+      dataDir: dataDir,
+      serverURL: process.env.ACTUAL_SERVER_URL,
+      password: process.env.ACTUAL_PASSWORD,
+      budgetId: process.env.AKAHU_BUDGET,
+    });
+    console.log('Actual API initialized successfully');
+    await actualApiInstance.loadBudget(process.env.AKAHU_BUDGET);
+
+    if (!await actualApiInstance.isBudgetOpen()) {
+      throw new Error('Failed to open budget with ID: ' + process.env.AKAHU_BUDGET);
+    }
+    console.log('Budget loaded successfully');
+  } catch (error) {
+    console.error('Error during Actual API initialization:', error.message);
+    throw error;
+  }
+}
+
 async function loadMapping() {
   try {
-    const data = await fs.readFile(MAPPING_FILE, 'utf8');
+    const data = await fs.readFile('akahu_to_actual_mapping.json', 'utf8');
     return JSON.parse(data);
   } catch (error) {
     if (error.code === 'ENOENT') {
-      log(`${MAPPING_FILE} not found. Proceeding to create new mappings.`);
+      log('akahu_to_actual_mapping.json not found. Proceeding to create new mappings.');
       return [];
     }
-    log(`Error reading ${MAPPING_FILE}: ${error.message}`);
+    log(`Error reading akahu_to_actual_mapping.json: ${error.message}`);
     throw error;
   }
 }
 
 async function saveMapping(mapping) {
   try {
-    await fs.writeFile(MAPPING_FILE, JSON.stringify(mapping, null, 2));
-    log(`Mapping file ${MAPPING_FILE} saved successfully.`);
+    await fs.writeFile('akahu_to_actual_mapping.json', JSON.stringify(mapping, null, 2));
+    log('Mapping file akahu_to_actual_mapping.json saved successfully.');
   } catch (error) {
     log(`Error saving mapping: ${error.message}`);
     throw error;
   }
 }
 
-async function fetchAkahuAccounts(client, userToken) {
+async function fetchAkahuAccounts(akahuClient, akahuUserToken) {
   try {
-    const accounts = await client.accounts.list(userToken);
+    const accounts = await akahuClient.accounts.list(akahuUserToken);
     log(`Fetched ${accounts.length} Akahu accounts.`);
     return accounts;
   } catch (error) {
     log(`Error fetching Akahu accounts: ${error.message}`);
-    throw error;
-  }
-}
-
-async function initializeActualAPI() {
-  try {
-    const dataDir = path.join(os.tmpdir(), 'actual-data');
-    await fs.mkdir(dataDir, { recursive: true });
-    await actualAPI.init({
-      dataDir: dataDir,
-      serverURL: process.env.ACTUAL_SERVER_URL,
-      password: process.env.ACTUAL_PASSWORD,
-      budgetId: process.env.ACTUAL_SYNC_ID,
-    });
-    console.log('Actual API initialized successfully');
-    await actualAPI.downloadBudget(process.env.ACTUAL_SYNC_ID, { password: process.env.ACTUAL_ENCRYPTION_KEY });
-
-    // Removed budget open check as downloadBudget ensures the budget is available
-    console.log('Budget loaded successfully');
-  } catch (error) {
-    console.error('Error during Actual API initialization:', error.message);
     throw error;
   }
 }
@@ -150,7 +151,6 @@ async function matchAccountsWithOpenAI(akahuAccounts, actualAccounts) {
           akahu_name: akahuAccount.name,
           akahu_id: akahuAccount._id,
           actual_account_name: actualMatch.name,
-          actual_budget_id: actualMatch.budgetId,
           actual_account_id: actualMatch.id,
           account_type: actualMatch.closed ? 'Archived' : 'Tracking',
           note: null,
@@ -159,7 +159,6 @@ async function matchAccountsWithOpenAI(akahuAccounts, actualAccounts) {
         mappings.push({
           akahu_name: akahuAccount.name,
           akahu_id: akahuAccount._id,
-          actual_budget_id: 'SKIP',
           actual_account_id: '',
           note: 'Skipped Akahu account',
         });
@@ -190,32 +189,28 @@ async function promptUserToSaveMapping(mapping) {
   }
 }
 
-(async () => {
+async function runMappingProcess() {
   try {
-    const client = new AkahuClient({
+    const akahuClient = new AkahuClient({
       appToken: process.env.AKAHU_APP_TOKEN,
     });
 
     // Step 0: Load existing mapping and validate
     const existingMapping = await loadMapping();
     if (existingMapping.length > 0) {
-      const akahuAccounts = await fetchAkahuAccounts(client, process.env.AKAHU_USER_TOKEN);
+      const akahuAccounts = await fetchAkahuAccounts(akahuClient, process.env.AKAHU_USER_TOKEN);
       await initializeActualAPI();
-    try {
       const actualAccounts = await fetchActualAccounts();
-    } catch (error) {
-      console.error('Error loading budget or fetching accounts:', error.message);
-      throw error;
-    }
       await checkExistingMapping(existingMapping, akahuAccounts, actualAccounts);
       log('Existing mapping is valid.');
       return;
     }
 
     // Step 1: Fetch Akahu accounts
-    const akahuAccounts = await fetchAkahuAccounts(client, process.env.AKAHU_USER_TOKEN);
+    const akahuAccounts = await fetchAkahuAccounts(akahuClient, process.env.AKAHU_USER_TOKEN);
 
     // Step 2: Fetch Actual Budget accounts
+    await initializeActualAPI();
     const actualAccounts = await fetchActualAccounts();
 
     // Step 3: Match accounts using OpenAI
@@ -226,5 +221,16 @@ async function promptUserToSaveMapping(mapping) {
 
   } catch (error) {
     log(`Error: ${error.message}`);
+  }
+}
+
+
+
+
+(async () => {
+  try {
+    await runMappingProcess();
+  } catch (error) {
+    console.error('Error running the script:', error.message);
   }
 })();
