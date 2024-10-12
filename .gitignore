@@ -3,4 +3,3 @@ node_modules/
 actual-budget-test.js
 *.log
 akahu_sync_timestamps.json
-*.json
