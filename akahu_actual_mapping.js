@@ -43,11 +43,8 @@ async function initializeActualAPI() {
       budgetId: process.env.AKAHU_BUDGET,
     });
     console.log('Actual API initialized successfully');
-    await actualApiInstance.loadBudget(process.env.AKAHU_BUDGET);
+    await actualAPI.downloadBudget(process.env.ACTUAL_SYNC_ID, { password: process.env.ACTUAL_ENCRYPTION_KEY });
 
-    if (!await actualApiInstance.isBudgetOpen()) {
-      throw new Error('Failed to open budget with ID: ' + process.env.AKAHU_BUDGET);
-    }
     console.log('Budget loaded successfully');
   } catch (error) {
     console.error('Error during Actual API initialization:', error.message);

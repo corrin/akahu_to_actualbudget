@@ -3,10 +3,27 @@ const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs').promises;
 const os = require('os');
-const axios = require('axios');
-const actualAPI = require('@actual-app/api');
+const api = require('@actual-app/api');
 
 dotenv.config({ path: path.join(__dirname, '.env') });
+
+const SYNC_TIMESTAMPS_FILE = 'akahu_sync_timestamps.json';
+const DEFAULT_START_DATE = '2024-08-01T00:00:00.000Z';
+
+function log(message) {
+    const timestamp = new Date().toISOString();
+    const truncatedMessage = message.length > 2000
+        ? message.substring(0, 2000) + '... (truncated)'
+        : message;
+    console.log(`[${timestamp}] ${truncatedMessage}`);
+}
+
+function logError(message, error) {
+    log(`${message}: ${error.message}`);
+    if (error.stack) {
+        log(`Error stack: ${error.stack}`);
+    }
+}
 
 const requiredEnvVars = [
     'ACTUAL_SERVER_URL',
@@ -14,217 +31,358 @@ const requiredEnvVars = [
     'ACTUAL_SYNC_ID',
     'ACTUAL_ENCRYPTION_KEY',
     'AKAHU_APP_TOKEN',
-    'AKAHU_USER_TOKEN',
-    'OPENAI_API_KEY'
+    'AKAHU_USER_TOKEN'
 ];
 
-requiredEnvVars.forEach((varName) => {
-  if (!process.env[varName]) {
-    console.error(`Missing required environment variable: ${varName}`);
-    process.exit(1);
-  }
-});
-
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const MAPPING_FILE = 'akahu_to_actual_mapping.json';
-
-async function log(message) {
-  const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${message}`);
+function checkRequiredEnvVars() {
+    const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+    if (missingVars.length > 0) {
+        throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+    }
+    log('All required environment variables are set.');
 }
 
 async function loadMapping() {
-  try {
-    const data = await fs.readFile(MAPPING_FILE, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      log(`${MAPPING_FILE} not found. Proceeding to create new mappings.`);
-      return [];
+    const mappingFileName = 'akahu_to_actual_mapping.json';
+    try {
+        const mappingData = await fs.readFile(mappingFileName, 'utf8');
+        return JSON.parse(mappingData);
+    } catch (error) {
+        logError(`Error loading mapping file (${mappingFileName})`, error);
+        throw error;
     }
-    log(`Error reading ${MAPPING_FILE}: ${error.message}`);
-    throw error;
-  }
 }
 
-async function saveMapping(mapping) {
-  try {
-    await fs.writeFile(MAPPING_FILE, JSON.stringify(mapping, null, 2));
-    log(`Mapping file ${MAPPING_FILE} saved successfully.`);
-  } catch (error) {
-    log(`Error saving mapping: ${error.message}`);
-    throw error;
-  }
-}
-
+// Akahu-related functions
 async function fetchAkahuAccounts(client, userToken) {
-  try {
-    const accounts = await client.accounts.list(userToken);
-    log(`Fetched ${accounts.length} Akahu accounts.`);
-    return accounts;
-  } catch (error) {
-    log(`Error fetching Akahu accounts: ${error.message}`);
-    throw error;
-  }
+    log('Starting to fetch Akahu accounts');
+    const startTime = Date.now();
+    try {
+        const accounts = await client.accounts.list(userToken);
+        log(`Fetched ${accounts.length} Akahu accounts in ${Date.now() - startTime}ms`);
+        accounts.forEach(account => {
+            log(`  ${account.name} (Akahu ID: ${account._id})`);
+        });
+        return new Map(accounts.map(account => [account._id, account]));
+    } catch (error) {
+        logError('Error fetching Akahu accounts', error);
+        throw error;
+    }
 }
 
-async function initializeActualAPI() {
-  try {
-    const dataDir = path.join(os.tmpdir(), 'actual-data');
-    await fs.mkdir(dataDir, { recursive: true });
-    await actualAPI.init({
-      dataDir: dataDir,
-      serverURL: process.env.ACTUAL_SERVER_URL,
-      password: process.env.ACTUAL_PASSWORD,
-      budgetId: process.env.ACTUAL_SYNC_ID,
-    });
-    console.log('Actual API initialized successfully');
-    await actualAPI.downloadBudget(process.env.ACTUAL_SYNC_ID, { password: process.env.ACTUAL_ENCRYPTION_KEY });
+async function fetchAkahuTransactions(client, userToken, accountId, startDate) {
+    log(`Fetching transactions for account ${accountId} from ${startDate}`);
+    try {
+        let allTransactions = [];
+        let nextCursor = undefined;
+        do {
+            const response = await client.accounts.listTransactions(userToken, accountId, {
+                start: startDate,
+                cursor: nextCursor,
+            });
+            if (!response.items || !Array.isArray(response.items)) {
+                throw new Error('Unexpected response format from Akahu API');
+            }
+            allTransactions = allTransactions.concat(response.items);
+            nextCursor = response.cursor ? response.cursor.next : null;
+            log(`Fetched ${response.items.length} transactions, total so far: ${allTransactions.length}`);
+        } while (nextCursor !== null);
+        log(`Fetched ${allTransactions.length} transactions in total for account ${accountId}`);
+        return allTransactions;
+    } catch (error) {
+        logError(`Error fetching Akahu transactions for account ${accountId}`, error);
+        throw error;
+    }
+}
 
-    // Removed budget open check as downloadBudget ensures the budget is available
-    console.log('Budget loaded successfully');
-  } catch (error) {
-    console.error('Error during Actual API initialization:', error.message);
-    throw error;
-  }
+// Actual-related functions
+async function initializeActualAPI() {
+    try {
+        const dataDir = path.join(os.tmpdir(), 'actual-data');
+        await fs.mkdir(dataDir, { recursive: true });
+        await api.init({
+            dataDir: dataDir,
+            serverURL: process.env.ACTUAL_SERVER_URL,
+            password: process.env.ACTUAL_PASSWORD,
+            budgetId: process.env.ACTUAL_SYNC_ID,
+        });
+        log('Actual API initialized successfully');
+    } catch (error) {
+        logError('Error during Actual API initialization', error);
+        throw error;
+    }
+}
+
+async function ensureBudgetLoaded() {
+    try {
+        const encryptionKey = process.env.ACTUAL_ENCRYPTION_KEY;
+        if (!encryptionKey) {
+            throw new Error("Encryption key not provided");
+        }
+        await api.downloadBudget(process.env.ACTUAL_SYNC_ID, { password: encryptionKey });
+        log('Budget downloaded successfully');
+    } catch (error) {
+        logError('Error downloading budget', error);
+        throw error;
+    }
 }
 
 async function fetchActualAccounts() {
-  try {
-    const accounts = await actualAPI.getAccounts();
-    log(`Fetched ${accounts.length} Actual Budget accounts.`);
-    return accounts;
-  } catch (error) {
-    log(`Error fetching Actual accounts: ${error.message}`);
-    throw error;
-  }
-}
-
-async function checkExistingMapping(mapping, akahuAccounts, actualAccounts) {
-  const akahuAccountIds = new Set(akahuAccounts.map(account => account._id));
-  const actualAccountIds = new Set(actualAccounts.map(account => account.id));
-  const errors = [];
-
-  mapping.forEach(entry => {
-    if (entry.actual_account_id && !actualAccountIds.has(entry.actual_account_id)) {
-      errors.push(`Actual account not found for entry: ${entry.akahu_name}`);
-    }
-    if (entry.akahu_id && !akahuAccountIds.has(entry.akahu_id)) {
-      errors.push(`Akahu account not found for entry: ${entry.akahu_name}`);
-    }
-  });
-
-  if (errors.length > 0) {
-    throw new Error(`Mapping validation failed:\n${errors.join('\n')}`);
-  }
-}
-
-async function matchAccountsWithOpenAI(akahuAccounts, actualAccounts) {
-  const mappings = [];
-  const prompts = akahuAccounts.map(account => {
-    return `Match the following Akahu account to an Actual Budget account: "${account.name}". Provide the closest match.`;
-  });
-
-  try {
-    const response = await axios.post(
-      'https://api.openai.com/v1/completions',
-      {
-        model: 'text-davinci-003',
-        prompt: prompts.join('\n'),
-        max_tokens: 150,
-        temperature: 0.7,
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        },
-      }
-    );
-
-    response.data.choices.forEach((choice, index) => {
-      const akahuAccount = akahuAccounts[index];
-      const actualMatch = actualAccounts.find(account => choice.text.includes(account.name));
-
-      if (actualMatch) {
-        mappings.push({
-          akahu_name: akahuAccount.name,
-          akahu_id: akahuAccount._id,
-          actual_account_name: actualMatch.name,
-          actual_budget_id: actualMatch.budgetId,
-          actual_account_id: actualMatch.id,
-          account_type: actualMatch.closed ? 'Archived' : 'Tracking',
-          note: null,
-        });
-      } else {
-        mappings.push({
-          akahu_name: akahuAccount.name,
-          akahu_id: akahuAccount._id,
-          actual_budget_id: 'SKIP',
-          actual_account_id: '',
-          note: 'Skipped Akahu account',
-        });
-      }
-    });
-  } catch (error) {
-    log(`Error calling OpenAI API: ${error.message}`);
-    throw error;
-  }
-
-  return mappings;
-}
-
-async function promptUserToSaveMapping(mapping) {
-  console.log('Proposed Mapping:');
-  mapping.forEach(entry => {
-    console.log(`${entry.akahu_name} -> ${entry.actual_account_name || 'No Match'}`);
-  });
-  console.log('Press Y to save this mapping to akahu_to_actual_mapping.json, or any other key to cancel.');
-  const userInput = await new Promise(resolve => {
-    process.stdin.once('data', data => resolve(data.toString().trim()));
-  });
-
-  if (userInput.toLowerCase() === 'y') {
-    await saveMapping(mapping);
-  } else {
-    log('Mapping was not saved.');
-  }
-}
-
-(async () => {
-  try {
-    const client = new AkahuClient({
-      appToken: process.env.AKAHU_APP_TOKEN,
-    });
-
-    // Step 0: Load existing mapping and validate
-    const existingMapping = await loadMapping();
-    if (existingMapping.length > 0) {
-      const akahuAccounts = await fetchAkahuAccounts(client, process.env.AKAHU_USER_TOKEN);
-      await initializeActualAPI();
     try {
-      const actualAccounts = await fetchActualAccounts();
+        log('Fetching Actual accounts...');
+        const allAccounts = await api.getAccounts();
+        const openAccounts = allAccounts.filter(account => !account.closed);
+        log(`Fetched ${openAccounts.length} open Actual accounts`);
+        openAccounts.forEach(account => {
+            log(`  ${account.name} (Actual ID: ${account.id})`);
+        });
+        return openAccounts;
     } catch (error) {
-      console.error('Error loading budget or fetching accounts:', error.message);
-      throw error;
+        logError('Error fetching Actual accounts', error);
+        throw error;
     }
-      await checkExistingMapping(existingMapping, akahuAccounts, actualAccounts);
-      log('Existing mapping is valid.');
-      return;
+}
+
+async function getActualAccountBalance(actualAccountID) {
+    try {
+        return await api.getAccountBalance(actualAccountID);
+    } catch (error) {
+        logError(`Error fetching balance for account ${actualAccountID}`, error);
+        throw error;
     }
+}
 
-    // Step 1: Fetch Akahu accounts
-    const akahuAccounts = await fetchAkahuAccounts(client, process.env.AKAHU_USER_TOKEN);
+// Utility functions
+async function getSyncTimestamps() {
+    try {
+        const data = await fs.readFile(SYNC_TIMESTAMPS_FILE, 'utf8');
+        if (!data.trim()) {
+            log(`Sync timestamps file (${SYNC_TIMESTAMPS_FILE}) is empty.`);
+            return {};
+        }
+        return JSON.parse(data);
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            log(`${SYNC_TIMESTAMPS_FILE} not found, creating new file.`);
+            return {};
+        }
+        logError(`Error reading sync timestamps (${SYNC_TIMESTAMPS_FILE})`, error);
+        throw error;
+    }
+}
 
-    // Step 2: Fetch Actual Budget accounts
-    const actualAccounts = await fetchActualAccounts();
+async function updateSyncTimestamp(akahuAccountID, timestamp) {
+    try {
+        const timestamps = await getSyncTimestamps();
+        timestamps[akahuAccountID] = timestamp;
+        await fs.writeFile(SYNC_TIMESTAMPS_FILE, JSON.stringify(timestamps, null, 2));
+    } catch (error) {
+        logError('Error updating sync timestamp', error);
+    }
+}
 
-    // Step 3: Match accounts using OpenAI
-    const newMapping = await matchAccountsWithOpenAI(akahuAccounts, actualAccounts);
+function isoToShortDate(isoDate) {
+    const date = new Date(isoDate);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
 
-    // Step 4: Output proposed mapping
-    await promptUserToSaveMapping(newMapping);
+function generateSummary(accounts, transactions) {
+    return accounts.map(account => ({
+        name: account.akahu_name,
+        akahu_id: account.akahu_id,
+        transactionCount: transactions[account.akahu_id] ? transactions[account.akahu_id].length : 0,
+        totalAmount: transactions[account.akahu_id]
+            ? transactions[account.akahu_id].reduce((sum, t) => sum + t.amount, 0)
+            : 0
+    }));
+}
 
-  } catch (error) {
-    log(`Error: ${error.message}`);
-  }
-})();
+async function handleAccountBalanceComparison(account, akahuAccounts, actualAccounts) {
+    try {
+        const akahuAccount = akahuAccounts.get(account.akahu_id);
+        if (!akahuAccount) {
+            throw new Error(`Unable to find Akahu account info for ${account.akahu_name} (Akahu ID: ${account.akahu_id})`);
+        }
+
+        const akahuBalance = Math.round(akahuAccount.balance.current * 100);
+        const actualAccount = actualAccounts.find(a => a.id === account.actual_account_id);
+
+        if (!actualAccount) {
+            throw new Error(`Unable to find Actual account for ID: ${account.actual_account_id}`);
+        }
+
+        const actualBalance = await getActualAccountBalance(actualAccount.id);
+
+        log(`After processing Akahu balance: ${akahuBalance / 100}, Actual balance: ${actualBalance / 100}`);
+
+        if (akahuBalance !== actualBalance) {
+            log(`Balance mismatch for account ${account.akahu_name}: Akahu balance is ${akahuBalance / 100}, but Actual balance is ${actualBalance / 100}`);
+        }
+    } catch (error) {
+        logError(`Error comparing balances for account ${account.akahu_name} (Akahu ID: ${account.akahu_id})`, error);
+    }
+}
+
+async function handleTrackingAccount(account, akahuAccounts, actualAccounts) {
+    log(`Handling tracking account: ${account.akahu_name} (Akahu ID: ${account.akahu_id})`);
+    try {
+        const akahuAccount = akahuAccounts.get(account.akahu_id);
+        if (!akahuAccount) {
+            throw new Error(`Unable to find Akahu account info for ${account.akahu_name} (Akahu ID: ${account.akahu_id})`);
+        }
+
+        const akahuBalance = Math.round(akahuAccount.balance.current * 100);
+        const actualAccount = actualAccounts.find(a => a.id === account.actual_account_id);
+
+        if (!actualAccount) {
+            throw new Error(`Unable to find Actual account for ID: ${account.actual_account_id}`);
+        }
+
+        const actualBalance = await getActualAccountBalance(actualAccount.id);
+
+        log(`Akahu balance: ${akahuBalance / 100}, Actual balance: ${actualBalance / 100}`);
+
+        if (akahuBalance !== actualBalance) {
+            const adjustmentAmount = akahuBalance - actualBalance;
+            const transaction = [{
+                date: isoToShortDate(new Date().toISOString()),
+                account: account.actual_account_id,
+                amount: adjustmentAmount,
+                payee_name: 'Balance Adjustment',
+                notes: `Adjusted from ${actualBalance / 100} to ${akahuBalance / 100} based on retrieved balance`,
+                cleared: true,
+            }];
+
+            await api.importTransactions(account.actual_account_id, transaction);
+            log(`Created balance adjustment transaction for ${account.akahu_name} (Akahu ID: ${account.akahu_id}): ${adjustmentAmount / 100}`);
+            await handleAccountBalanceComparison(account, akahuAccounts, actualAccounts);
+        } else {
+            log(`No balance adjustment needed for ${account.akahu_name} (Akahu ID: ${account.akahu_id})`);
+        }
+    } catch (error) {
+        logError(`Error handling tracking account ${account.akahu_name} (Akahu ID: ${account.akahu_id})`, error);
+    }
+}
+
+async function handleOnBudgetAccount(account, akahuAccounts, actualAccounts, client, syncTimestamps) {
+    log(`Processing on-budget account: ${account.akahu_name} (Akahu ID: ${account.akahu_id}, Actual ID: ${account.actual_account_id})`);
+
+    const lastSyncDate = new Date(syncTimestamps[account.akahu_id] || DEFAULT_START_DATE);
+    const startDate = new Date(lastSyncDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+    log(`Fetching transactions from ${isoToShortDate(startDate.toISOString())}`);
+
+    try {
+        const akahuAccount = akahuAccounts.get(account.akahu_id);
+        if (akahuAccount) {
+            log(`Akahu account details for ${account.akahu_name}:`);
+            log(JSON.stringify(akahuAccount, null, 2));
+        } else {
+            log(`Warning: Akahu account not found for ID: ${account.akahu_id}`);
+        }
+
+        const akahuTransactions = await fetchAkahuTransactions(client, process.env.AKAHU_USER_TOKEN, account.akahu_id, startDate.toISOString());
+
+        log(`Mapping ${akahuTransactions.length} transactions for ${account.akahu_name} (Akahu ID: ${account.akahu_id})`);
+        const mappedTransactions = akahuTransactions.map(t => ({
+            date: isoToShortDate(t.date),
+            account: account.actual_account_id,
+            amount: Math.round(t.amount * -100),
+            payee_name: t.description,
+            notes: `Akahu transaction: ${t.description}`,
+            imported_id: t._id,
+        }));
+
+        if (mappedTransactions.length > 0) {
+            log(`Importing ${mappedTransactions.length} transactions for account ${account.akahu_name} (Akahu ID: ${account.akahu_id}, Actual ID: ${account.actual_account_id})`);
+            const importResult = await api.importTransactions(account.actual_account_id, mappedTransactions);
+            log(`Import result: ${JSON.stringify(importResult, null, 2)}`);
+            await handleAccountBalanceComparison(account, akahuAccounts, actualAccounts);
+
+            log(`Updating sync timestamp for ${account.akahu_name} (Akahu ID: ${account.akahu_id})`);
+            await updateSyncTimestamp(account.akahu_id, new Date().toISOString());
+        } else {
+            log(`No new transactions for ${account.akahu_name} (Akahu ID: ${account.akahu_id})`);
+        }
+
+        return mappedTransactions;
+    } catch (error) {
+        logError(`Error processing on-budget account ${account.akahu_name} (Akahu ID: ${account.akahu_id})`, error);
+        return [];
+    }
+}
+
+async function importTransactions() {
+    const overallStartTime = Date.now();
+    const transactionSummary = {};
+
+    try {
+        checkRequiredEnvVars();
+        const mapping = await loadMapping();
+        const syncTimestamps = await getSyncTimestamps();
+
+        const client = new AkahuClient({
+            appToken: process.env.AKAHU_APP_TOKEN,
+        });
+
+        await initializeActualAPI();
+        await ensureBudgetLoaded();
+
+        const akahuAccounts = await fetchAkahuAccounts(client, process.env.AKAHU_USER_TOKEN);
+        const actualAccounts = await fetchActualAccounts();
+
+        const trackingAccounts = mapping.filter(m => m.actual_budget_id !== 'SKIP' && m.actual_budget_id !== '' && m.account_type === 'Tracking');
+        const onBudgetAccounts = mapping.filter(m => m.actual_budget_id !== 'SKIP' && m.actual_budget_id !== '' && m.account_type === 'On Budget');
+
+        log('Mapping details:');
+        mapping.forEach(m => {
+            log(`Akahu: ${m.akahu_name} (ID: ${m.akahu_id}), Actual ID: ${m.actual_account_id}, Type: ${m.account_type}`);
+        });
+
+        for (const account of trackingAccounts) {
+            const actualAccount = actualAccounts.find(a => a.id === account.actual_account_id);
+            if (!actualAccount) {
+                log(`Skipping closed or non-existent tracking account: ${account.akahu_name} (Akahu ID: ${account.akahu_id}, Actual ID: ${account.actual_account_id})`);
+                continue;
+            }
+            await handleTrackingAccount(account, akahuAccounts, actualAccounts);
+        }
+
+        for (const account of onBudgetAccounts) {
+            const actualAccount = actualAccounts.find(a => a.id === account.actual_account_id);
+            if (!actualAccount) {
+                log(`Skipping on-budget account: ${account.akahu_name} (Akahu ID: ${account.akahu_id}, Actual ID: ${account.actual_account_id})`);
+                log(`Reason: Account not found in list of open Actual accounts`);
+                log(`Available Actual account IDs: ${actualAccounts.map(a => a.id).join(', ')}`);
+                continue;
+            }
+            const transactions = await handleOnBudgetAccount(account, akahuAccounts, actualAccounts, client, syncTimestamps);
+            transactionSummary[account.akahu_id] = transactions;
+        }
+
+        // Generate and log summary
+        const summary = generateSummary([...trackingAccounts, ...onBudgetAccounts], transactionSummary);
+        log("Import Summary:");
+        summary.forEach(account => {
+            log(`${account.name} (Akahu ID: ${account.akahu_id}): ${account.transactionCount} transactions, total amount: $${(account.totalAmount / 100).toFixed(2)}`);
+        });
+
+    } catch (error) {
+        logError(`An error occurred during import`, error);
+    } finally {
+        if (api) {
+            try {
+                log('Shutting down Actual API');
+                await api.shutdown();
+                log('Actual API shutdown successfully');
+            } catch (shutdownError) {
+                logError(`Error during API shutdown`, shutdownError);
+            }
+        }
+    }
+    log(`Total execution time: ${(Date.now() - overallStartTime) / 1000} seconds`);
+}
+
+importTransactions().catch(error => {
+    logError(`Unhandled error occurred`, error);
+    process.exit(1);
+});
