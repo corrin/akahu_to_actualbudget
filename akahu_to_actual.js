@@ -107,6 +107,7 @@ async function initializeActualAPI() {
             budgetId: process.env.ACTUAL_SYNC_ID,
         });
         log('Actual API initialized successfully');
+        return api;
     } catch (error) {
         logError('Error during Actual API initialization', error);
         throw error;
@@ -324,8 +325,26 @@ async function importTransactions() {
             appToken: process.env.AKAHU_APP_TOKEN,
         });
 
-        await initializeActualAPI();
+        const actualAPI = await initializeActualAPI();
+        if (!actualAPI) {
+            throw new Error('Failed to initialize Actual API');
+        }
+        log("Actual API initialized successfully");
+        console.log('Available API methods:', Object.keys(actualAPI));
+
+        await actualAPI.runMigrations();
+        log('Migrations completed successfully');
+
+        // Sync with server
+        log('Syncing with server...');
+        await actualAPI.sync({
+          serverURL: process.env.ACTUAL_SERVER_URL,
+          skipInitialDownload: false,
+          mode: 'balanced'
+        });
+        log('Server sync completed');
         await ensureBudgetLoaded();
+        log("Budget is loaded");
 
         const akahuAccounts = await fetchAkahuAccounts(client, process.env.AKAHU_USER_TOKEN);
         const actualAccounts = await fetchActualAccounts();

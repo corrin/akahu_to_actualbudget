@@ -35,6 +35,11 @@ You can then get the API key from the settings page (under advanced)
 
 ** Write akahu_to_actual_mapping.json
 
+I've written a script to help here.  Run akahu_actual_mapping.js.
+You still need to write the .env file first, but it is designed to have better error messages if you get it wrong.
+
+It uses ChatGPT to help with the mapping.
+
 Here's a snippet from mine
 
   {
