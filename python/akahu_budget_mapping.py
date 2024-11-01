@@ -433,7 +433,7 @@ def match_accounts(akahu_to_account_mapping, akahu_accounts, target_accounts, ac
         target_account_key = 'actual_account_id'
         target_account_name = 'actual_account_name'
     elif account_type == 'ynab':
-        target_account_key = 'id'
+        target_account_key = 'ynab_account_id'
         target_account_name = 'ynab_account_name'
     else:
         raise ValueError("Invalid account type provided. Must be either 'actual' or 'ynab'.")
@@ -443,6 +443,7 @@ def match_accounts(akahu_to_account_mapping, akahu_accounts, target_accounts, ac
 
     for akahu_account in akahu_accounts:
         akahu_id = akahu_account['id']
+        akahu_name = akahu_account['name']
 
         # Check if Akahu account is already mapped
         if akahu_id in akahu_to_account_mapping and target_account_key in akahu_to_account_mapping[akahu_id]:
@@ -491,7 +492,10 @@ def match_accounts(akahu_to_account_mapping, akahu_accounts, target_accounts, ac
             selected_name = selected_account['name']
             akahu_to_account_mapping[akahu_id] = {
                 target_account_key: selected_id,
-                target_account_name: selected_name
+                target_account_name: selected_name,
+                "akahu_id": akahu_id,
+                "akahu_name": akahu_name,
+                "matched_date": datetime.now().isoformat(),
             }
             print(
                 f"Mapped Akahu account '{akahu_account['name']}' to target account '{selected_name}'.")
