@@ -1,4 +1,9 @@
+# STOP
+
+This is an archived project and has been superceded by https://github.com/corrin/akahu_to_budget
+
 # akahu_to_actualbudget
+
 
 This script (Node.js) downloads all your recent transactions using the Open Banking data aggregator Akahu, and posts them to Actual Budget.  If you live in NZ and use Actual Budget, then this should give you automatic transaction importing.
 Akahu acts as an aggregator in NZ, providing data from all the major banks, and quite a few other financial institutions.  That way this script works as `^(Westpac|Kiwibank|BNZ|ANZ|Simplicity|IRD|ASB)+$` to Actual Budget.
